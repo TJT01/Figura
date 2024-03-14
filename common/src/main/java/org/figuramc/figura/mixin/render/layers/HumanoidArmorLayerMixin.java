@@ -114,7 +114,16 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
 
         // Make sure the item in the equipment slot is actually a piece of armor
         if ((itemStack.getItem() instanceof ArmorItem armorItem && armorItem.getEquipmentSlot() == slot)) {
-            A armorModel = getArmorModel(slot);
+            VanillaPart mainPart = RenderUtils.partFromSlot(figura$avatar, slot);
+            if (figura$avatar.permissions.get(Permissions.VANILLA_MODEL_EDIT) == 1 && mainPart != null && !mainPart.checkVisible()) return;
+
+            A armorModel = RenderUtils.getCustomArmorModel(entity, itemStack, slot, getArmorModel(slot));
+
+            // armorModel being null means we can't render it; fall back to vanilla rendering
+            if (armorModel == null) {
+                figura$renderVanillaArmorPiece(vanillaPoseStack, vertexConsumers, entity, slot, light, armorModel);
+                return;
+            }
 
             // Bones have to be their defaults to prevent issues with clipping
             armorModel.body.xRot = 0.0f;
@@ -132,8 +141,6 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
             armorModel.rightArm.z = 0.0f;
 
             boolean allFailed = true;
-            VanillaPart mainPart = RenderUtils.partFromSlot(figura$avatar, slot);
-            if (figura$avatar.permissions.get(Permissions.VANILLA_MODEL_EDIT) == 1 && mainPart != null && !mainPart.checkVisible()) return;
 
             // Don't render armor if GeckoLib is already doing the rendering
             if (!GeckoLibCompat.armorHasCustomModel(itemStack)) {
@@ -158,12 +165,18 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, M extends 
             }
             // As a fallback, render armor the vanilla way
             if (allFailed) {
-                figura$renderingVanillaArmor = true;
-                renderArmorPiece(vanillaPoseStack, vertexConsumers, entity, slot, light, armorModel);
-                figura$renderingVanillaArmor = false;
+                figura$renderVanillaArmorPiece(vanillaPoseStack, vertexConsumers, entity, slot, light, armorModel);
             }
         }
 
+    }
+
+    // Renders armor using vanilla logic
+    @Unique
+    private void figura$renderVanillaArmorPiece(PoseStack poseStack, MultiBufferSource vertexConsumers, T entity, EquipmentSlot slot, int light, A armorModel) {
+        figura$renderingVanillaArmor = true;
+        renderArmorPiece(poseStack, vertexConsumers, entity, slot, light, armorModel);
+        figura$renderingVanillaArmor = false;
     }
 
     // Prepare the transformations for rendering armor on the avatar
