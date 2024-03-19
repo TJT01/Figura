@@ -16,6 +16,7 @@ import org.figuramc.figura.avatar.Avatar;
 import org.figuramc.figura.lua.api.vanilla_model.VanillaPart;
 import org.figuramc.figura.model.ParentType;
 import org.figuramc.figura.permissions.Permissions;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 public class RenderUtils {
@@ -124,6 +125,12 @@ public class RenderUtils {
         }
 
         return true;
+    }
+
+    @Nullable // Return null to use vanilla rendering
+    @ExpectPlatform
+    public static <T extends LivingEntity, A extends HumanoidModel<T>> A getCustomArmorModel(T entity, ItemStack stack, EquipmentSlot slot, A vanilla) {
+        throw new AssertionError();
     }
 
     @ExpectPlatform
